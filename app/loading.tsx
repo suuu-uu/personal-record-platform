@@ -1,0 +1,1 @@
+export default function Loading(){return <main className="main-panel"><div className="eyebrow">正在读取</div><h1>稍等片刻…</h1><div className="paper-card" style={{marginTop:24,minHeight:260,opacity:.65}}><div className="empty-state">正在整理你的记录。</div></div></main>}

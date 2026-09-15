@@ -1,0 +1,2 @@
+import { NextResponse } from "next/server";import { prisma } from "@/lib/prisma";
+export async function GET(request:Request){const p=new URL(request.url).searchParams;return NextResponse.json(await prisma.operationLog.findMany({where:{...(p.get("module")&&p.get("module")!=="all"?{module:p.get("module")!}:{}),...(p.get("from")?{createdAt:{gte:new Date(p.get("from")!)} }:{})},orderBy:{createdAt:"desc"},take:200}))}

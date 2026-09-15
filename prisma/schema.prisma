@@ -1,0 +1,228 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Achievement {
+  id           Int      @id @default(autoincrement())
+  title        String
+  type         String
+  role         String?
+  organization String?
+  startDate    DateTime
+  endDate      DateTime?
+  description  String?
+  awardDetails String?
+  link         String?
+  tags         String   @default("[]")
+  imageUrl     String?
+  isPublic     Boolean  @default(false)
+  isPinned     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+  deletedBy    String?
+  isDeleted    Boolean  @default(false)
+  todos        Todo[]
+
+  @@index([isPinned, startDate])
+  @@index([type])
+  @@index([title])
+  @@index([startDate])
+}
+
+model Todo {
+  id                   Int          @id @default(autoincrement())
+  title                String
+  description          String?
+  dueDate               DateTime?
+  remindAt              DateTime?
+  reminderType          String     @default("none")
+  repeatRule            String     @default("none")
+  repeatInterval        Int?
+  repeatEndDate         DateTime?
+  repeatCount           Int?
+  parentTodoId          Int?
+  priority              String       @default("medium")
+  status                String       @default("todo")
+  completedAt           DateTime?
+  isArchived            Boolean      @default(false)
+  archivedAt            DateTime?
+  tags                   String       @default("[]")
+  relatedAchievementId  Int?
+  relatedAchievement    Achievement? @relation(fields: [relatedAchievementId], references: [id], onDelete: SetNull)
+  isPublic              Boolean      @default(false)
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  deletedAt             DateTime?
+  deletedBy             String?
+  isDeleted             Boolean      @default(false)
+
+  @@index([isArchived, status])
+  @@index([dueDate])
+  @@index([remindAt, status])
+  @@index([parentTodoId])
+  @@index([title])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  type      String
+  title     String
+  message   String
+  todoId    Int?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  @@index([isRead, createdAt])
+  @@index([todoId])
+}
+
+model Footprint {
+  id             Int       @id @default(autoincrement())
+  key            String    @unique
+  scope          String
+  countryCode    String?
+  countryNameZh  String?
+  countryNameEn  String?
+  provinceCode   String?
+  provinceNameZh String?
+  provinceNameEn String?
+  visited        Boolean   @default(true)
+  visitedAt      DateTime?
+  note           String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+  deletedBy      String?
+  isDeleted      Boolean   @default(false)
+
+  @@index([scope, visited])
+  @@index([countryCode])
+  @@index([provinceCode])
+}
+
+model MaintenanceState {
+  key       String   @id
+  lastRunAt DateTime?
+  nextRunAt DateTime
+  updatedAt DateTime @updatedAt
+}
+
+model InspirationItem {
+  id              Int      @id @default(autoincrement())
+  monthKey        String
+  category        String
+  subCategory     String
+  title           String
+  summary         String
+  details         String
+  typicalExamples String   @default("[]")
+  sourceLinks     String   @default("[]")
+  sourceDomain    String   @default("")
+  reviewStatus    String   @default("pending")
+  reviewedAt      DateTime?
+  tags            String   @default("[]")
+  heatScore       Float?
+  collectedAt     DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+  deletedBy       String?
+  isDeleted       Boolean  @default(false)
+
+  @@unique([monthKey, category, title])
+  @@index([monthKey, category, subCategory])
+  @@index([title])
+}
+
+model InspirationRun {
+  id            Int      @id @default(autoincrement())
+  monthKey      String
+  status        String
+  triggerType   String   @default("manual")
+  collectedCount Int     @default(0)
+  pendingCount  Int     @default(0)
+  itemCount     Int      @default(0)
+  missingCount  Int      @default(0)
+  errorMessage  String?
+  startedAt     DateTime @default(now())
+  finishedAt    DateTime?
+  scheduledFor  DateTime
+  executedAt    DateTime?
+  timezone      String   @default("Asia/Shanghai")
+  isForced      Boolean  @default(false)
+  forcedReason  String?
+  attemptCount  Int      @default(0)
+
+  @@unique([monthKey])
+}
+
+model BackupRecord {
+  id           Int      @id @default(autoincrement())
+  type         String
+  scope        String
+  fileName     String
+  fileSize     Int      @default(0)
+  storagePath  String
+  status       String
+  errorMessage String?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model OperationLog {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+  action     String
+  module     String
+  objectType String
+  objectId   String?
+  result     String
+  detail     String?
+  errorMessage String?
+  @@index([module, createdAt])
+  @@index([createdAt])
+}
+
+model YearlySummary {
+  id                 Int      @id @default(autoincrement())
+  year               Int      @unique
+  achievementsCount  Int      @default(0)
+  todosCompleted     Int      @default(0)
+  todosTotal         Int      @default(0)
+  footprintsNew      Int      @default(0)
+  inspirationsCount  Int      @default(0)
+  topAchievements    String   @default("[]")
+  topInspirations    String   @default("[]")
+  keywords           String   @default("[]")
+  summaryText        String   @default("")
+  reviewNote         String   @default("")
+  generatedAt        DateTime @default(now())
+  isAuto             Boolean  @default(false)
+}
+
+model YearlyGoal {
+  id           Int      @id @default(autoincrement())
+  year         Int
+  title        String
+  targetValue  Float
+  currentValue Float    @default(0)
+  unit         String   @default("")
+  category     String   @default("其他")
+  isCompleted  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@index([year])
+}

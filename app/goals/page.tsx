@@ -1,0 +1,1 @@
+import { DashboardShell } from "@/components/dashboard-shell"; import { GoalsView } from "@/components/goals-view"; export const dynamic="force-dynamic"; export default function Page(){return <DashboardShell title="年度目标" subtitle="给这一年留几件想完成的事。"><GoalsView/></DashboardShell>}

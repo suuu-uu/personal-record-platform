@@ -1,0 +1,1 @@
+import {DashboardShell} from "@/components/dashboard-shell";import {RecycleBin} from "@/components/recycle-bin";export default function Page(){return <DashboardShell title="回收站" subtitle="已删除内容保留 30 天，可恢复或彻底删除。"><RecycleBin/></DashboardShell>}

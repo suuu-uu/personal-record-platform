@@ -1,0 +1,3 @@
+.site-header{grid-template-columns:max-content minmax(0,1fr) max-content}.top-navigation{justify-content:flex-start;min-width:0;width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;gap:8px}.top-navigation::-webkit-scrollbar{display:none}.top-navigation a{flex:none;padding-inline:10px}.header-actions{flex:none;white-space:nowrap;min-width:max-content}
+@media(max-width:720px){.top-navigation{justify-content:space-between;gap:2px}.top-navigation a{padding-inline:5px;font-size:13px}}
+@media(max-width:460px){.top-navigation{justify-content:flex-start}.top-navigation a{font-size:12px;padding-inline:4px}}

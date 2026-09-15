@@ -1,0 +1,5 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+const schema=z.object({scope:z.enum(["country","china-province"]),nameZh:z.string().min(1),nameEn:z.string().optional(),code:z.string().min(1),visitedAt:z.string().optional(),note:z.string().optional()});
+export async function POST(request:Request){const p=schema.safeParse(await request.json());if(!p.success)return NextResponse.json({error:"表单内容不完整"},{status:400});const v=p.data;const item=await prisma.footprint.upsert({where:{key:`${v.scope}-${v.code}`},update:{visited:true,visitedAt:v.visitedAt?new Date(v.visitedAt):null,note:v.note},create:{key:`${v.scope}-${v.code}`,scope:v.scope,countryCode:v.scope==="country"?v.code:null,countryNameZh:v.scope==="country"?v.nameZh:null,countryNameEn:v.scope==="country"?v.nameEn:null,provinceCode:v.scope==="china-province"?v.code:null,provinceNameZh:v.scope==="china-province"?v.nameZh:null,provinceNameEn:v.scope==="china-province"?v.nameEn:null,visitedAt:v.visitedAt?new Date(v.visitedAt):null,note:v.note}});return NextResponse.json(item,{status:201});}

@@ -1,0 +1,4 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+export const dynamic = "force-dynamic";
+export async function GET() { const now = new Date(); try { const [run, backup] = await Promise.all([prisma.inspirationRun.findFirst({ orderBy: { startedAt: "desc" }, select: { status: true, errorMessage: true, finishedAt: true } }), prisma.backupRecord.findFirst({ orderBy: { createdAt: "desc" }, select: { status: true, errorMessage: true, createdAt: true } })]); return NextResponse.json({ status: "ok", database: "connected", cron: run ?? null, backup: backup ?? null, currentTime: now.toISOString() }, { headers: { "Cache-Control": "no-store" } }); } catch { return NextResponse.json({ status: "degraded", database: "disconnected", currentTime: now.toISOString() }, { status: 503, headers: { "Cache-Control": "no-store" } }); } }
