@@ -9,8 +9,17 @@ model User {
   createdAt    DateTime @default(now())
 }
 
+model ShareLink {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  revokedAt DateTime?
+  @@index([isActive, createdAt])
+}
+
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -27,6 +36,7 @@ model Achievement {
   link         String?
   tags         String   @default("[]")
   imageUrl     String?
+  coverImageUrl String?
   isPublic     Boolean  @default(false)
   isPinned     Boolean  @default(false)
   createdAt    DateTime @default(now())
@@ -35,11 +45,29 @@ model Achievement {
   deletedBy    String?
   isDeleted    Boolean  @default(false)
   todos        Todo[]
+  attachments  AchievementAttachment[]
 
   @@index([isPinned, startDate])
   @@index([type])
   @@index([title])
   @@index([startDate])
+}
+
+model AchievementAttachment {
+  id            Int         @id @default(autoincrement())
+  achievementId Int
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  fileName      String
+  fileUrl       String
+  fileType      String
+  fileSize      Int
+  isCover       Boolean     @default(false)
+  sortOrder     Int         @default(0)
+  createdAt     DateTime    @default(now())
+  deletedAt     DateTime?
+  isDeleted     Boolean     @default(false)
+
+  @@index([achievementId, sortOrder])
 }
 
 model Todo {
@@ -99,6 +127,7 @@ model Footprint {
   provinceNameZh String?
   provinceNameEn String?
   visited        Boolean   @default(true)
+  isPublic       Boolean   @default(false)
   visitedAt      DateTime?
   note           String?
   createdAt      DateTime  @default(now())

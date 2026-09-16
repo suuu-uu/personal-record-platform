@@ -21,9 +21,9 @@ export async function GET(request: Request) {
     prisma.inspirationItem.findMany({ where: { isDeleted: false, OR: [{ title: c }, { summary: c }, { details: c }, { tags: c }, { category: c }, { subCategory: c }] }, select: { id: true, title: true, category: true, subCategory: true, summary: true, details: true }, take: 5 }),
   ]);
   return NextResponse.json({
-    achievements: achievements.sort((a, b) => order(a.title, q) - order(b.title, q)).slice(0, take).map((x) => ({ id: x.id, title: x.title, type: x.type, snippet: text(x.description || x.awardDetails || x.organization, q), url: `/achievements/${x.id}` })),
+    achievements: achievements.sort((a, b) => order(a.title, q) - order(b.title, q)).slice(0, take).map((x) => ({ id: x.id, title: x.title, type: x.type, snippet: text(x.description || x.awardDetails || x.organization, q), url: `/achievements?focus=${x.id}` })),
     todos: todos.sort((a, b) => order(a.title, q) - order(b.title, q)).slice(0, take).map((x) => ({ id: x.id, title: x.title, status: x.status, priority: x.priority, isArchived: x.isArchived, snippet: text(x.description, q), url: `/todos?focus=${x.id}` })),
     footprints: footprints.slice(0, take).map((x) => ({ id: x.id, title: x.provinceNameZh || x.countryNameZh || x.provinceNameEn || x.countryNameEn || x.key, subtitle: [x.countryNameEn, x.provinceNameEn].filter(Boolean).join(" · "), visited: x.visited, snippet: x.note || "足迹记录", url: "/footprints" })),
-    inspirations: inspirations.sort((a, b) => order(a.title, q) - order(b.title, q)).slice(0, take).map((x) => ({ id: x.id, title: x.title, category: x.category, subCategory: x.subCategory, snippet: text(x.summary || x.details, q), url: `/inspiration?item=${x.id}` })),
+    inspirations: inspirations.sort((a, b) => order(a.title, q) - order(b.title, q)).slice(0, take).map((x) => ({ id: x.id, title: x.title, category: x.category, subCategory: x.subCategory, snippet: text(x.summary || x.details, q), url: `/inspiration?focus=${x.id}` })),
   });
 }

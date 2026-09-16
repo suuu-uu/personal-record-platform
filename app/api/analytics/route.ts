@@ -25,19 +25,21 @@ export async function GET(request: NextRequest) {
   const years = new Map<number, number>();
   achievements.forEach((item) => years.set(item.startDate.getFullYear(), (years.get(item.startDate.getFullYear()) ?? 0) + 1));
   const byType = achievementTypes.map((name) => ({ name, value: achievements.filter((item) => item.type === name).length }));
+  const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+  const currentOverdue = todos.filter((item) => item.dueDate && item.dueDate < todayStart && item.status !== "done" && !item.isArchived).length;
   const buckets = Array.from({ length: 5 }, (_, index) => {
     const end = new Date(thirtyDaysAgo.getTime() + (index + 1) * 7 * 86400000);
     const start = new Date(thirtyDaysAgo.getTime() + index * 7 * 86400000);
     const created = todos.filter((item) => item.createdAt >= start && item.createdAt < end).length;
     const completed = todos.filter((item) => item.completedAt && item.completedAt >= start && item.completedAt < end).length;
-    const overdue = todos.filter((item) => item.dueDate && item.dueDate < end && item.status !== "done" && item.createdAt < end).length;
+    const overdue = index === 4 ? currentOverdue : 0;
     return { label: `${start.getMonth() + 1}/${start.getDate()}`, created, completed, overdue };
   });
   const done = todos.filter((item) => item.status === "done").length;
   const archived = todos.filter((item) => item.isArchived).length;
   const open = Math.max(todos.length - done - archived, 0);
   const countries = new Set(footprints.filter((item) => item.scope === "country" && item.countryCode).map((item) => item.countryCode));
-  const provinces = new Set(footprints.filter((item) => item.scope === "province" && item.provinceCode).map((item) => item.provinceCode));
+  const provinces = new Set(footprints.filter((item) => item.scope === "china-province" && item.provinceCode).map((item) => item.provinceCode));
   const inspirationByCategory = inspirationCategories.map((name) => ({ name, value: inspirations.filter((item) => item.category === name).length }));
   const subCategories = [...new Set(inspirations.map((item) => item.subCategory).filter(Boolean))].map((name) => ({ name, value: inspirations.filter((item) => item.subCategory === name).length }));
   const monthMap = new Map<string, number>();
