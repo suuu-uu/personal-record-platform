@@ -1,0 +1,7 @@
+import { NextResponse } from "next/server";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { cookies } from "next/headers";
+import { verifySession, SESSION_COOKIE } from "@/lib/auth";
+const types:Record<string,string>={jpg:"image/jpeg",jpeg:"image/jpeg",png:"image/png",webp:"image/webp",gif:"image/gif",pdf:"application/pdf",doc:"application/msword",docx:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"};
+export async function GET(_:Request,{params}:{params:Promise<{userId:string;filename:string}>}){const s=await verifySession((await cookies()).get(SESSION_COOKIE)?.value);const p=await params;if(!s||Number(s.userId)!==Number(p.userId))return NextResponse.json({error:"未授权"},{status:404});if(p.filename.includes("..")||p.filename.includes("/"))return NextResponse.json({error:"文件不存在"},{status:404});try{const file=await readFile(path.join(process.cwd(),"storage","uploads",p.userId,p.filename));const ext=p.filename.split(".").pop()?.toLowerCase()||"";return new Response(file,{headers:{"Content-Type":types[ext]||"application/octet-stream","Cache-Control":"private, no-store"}})}catch{return NextResponse.json({error:"文件不存在"},{status:404})}}

@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:migrate-legacy": "tsx scripts/migrate-legacy-user.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

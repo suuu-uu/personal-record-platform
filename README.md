@@ -1,6 +1,14 @@
 # 拾光簿
 
-个人成就、待办和足迹记录平台，使用 Next.js App Router、TypeScript、Prisma 和 SQLite。
+## 安全
+
+安全策略和部署前检查见 [SECURITY.md](SECURITY.md)。生产环境必须配置随机 `AUTH_SECRET`、HTTPS、PostgreSQL 最小权限账号和 Cron 密钥。当前限流为单实例内存实现，多实例部署需要接入 Redis/Upstash；病毒扫描、2FA、备份加密、Sentry 和 WAF 需要由部署环境另行接入。
+
+个人成就、待办和足迹记录平台，使用 Next.js App Router、TypeScript、Prisma 和 PostgreSQL。
+
+## 多用户认证
+
+访问 `/register` 创建账号。用户名和邮箱必须唯一，密码至少 8 位且同时包含字母和数字。登录支持用户名或邮箱，状态保存在有效期 7 天的 httpOnly、SameSite=Lax 签名 Cookie 中。部署前必须设置随机的 `AUTH_SECRET`，不要在环境变量或示例配置中写入固定账号密码。
 
 ## 安装与开发
 

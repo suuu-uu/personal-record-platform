@@ -5,12 +5,31 @@ generator client {
 model User {
   id           Int      @id @default(autoincrement())
   username     String   @unique
+  email        String   @unique
   passwordHash String
+  nickname     String?
+  avatarUrl    String?
+  role         String   @default("user")
   createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  achievements Achievement[]
+  achievementAttachments AchievementAttachment[]
+  todos       Todo[]
+  shareLinks ShareLink[]
+  notifications Notification[]
+  footprints Footprint[]
+  inspirationItems InspirationItem[]
+  inspirationRuns InspirationRun[]
+  backupRecords BackupRecord[]
+  operationLogs OperationLog[]
+  yearlySummaries YearlySummary[]
+  yearlyGoals YearlyGoal[]
 }
 
 model ShareLink {
   id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   token     String   @unique
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -44,6 +63,8 @@ model Achievement {
   deletedAt    DateTime?
   deletedBy    String?
   isDeleted    Boolean  @default(false)
+  userId       Int?
+  user         User? @relation(fields: [userId], references: [id], onDelete: Cascade)
   todos        Todo[]
   attachments  AchievementAttachment[]
 
@@ -66,6 +87,8 @@ model AchievementAttachment {
   createdAt     DateTime    @default(now())
   deletedAt     DateTime?
   isDeleted     Boolean     @default(false)
+  userId        Int?
+  user          User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([achievementId, sortOrder])
 }
@@ -96,6 +119,8 @@ model Todo {
   deletedAt             DateTime?
   deletedBy             String?
   isDeleted             Boolean      @default(false)
+  userId                Int?
+  user                  User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([isArchived, status])
   @@index([dueDate])
@@ -105,6 +130,8 @@ model Todo {
 }
 
 model Notification {
+  userId    Int?
+  user      User? @relation(fields: [userId], references: [id], onDelete: Cascade)
   id        Int      @id @default(autoincrement())
   type      String
   title     String
@@ -117,6 +144,8 @@ model Notification {
 }
 
 model Footprint {
+  userId         Int?
+  user           User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   id             Int       @id @default(autoincrement())
   key            String    @unique
   scope          String
@@ -149,6 +178,8 @@ model MaintenanceState {
 }
 
 model InspirationItem {
+  userId          Int?
+  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   id              Int      @id @default(autoincrement())
   monthKey        String
   category        String
@@ -176,6 +207,8 @@ model InspirationItem {
 }
 
 model InspirationRun {
+  userId        Int?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   id            Int      @id @default(autoincrement())
   monthKey      String
   status        String
@@ -198,6 +231,8 @@ model InspirationRun {
 }
 
 model BackupRecord {
+  userId        Int?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   id           Int      @id @default(autoincrement())
   type         String
   scope        String
@@ -212,6 +247,8 @@ model BackupRecord {
 }
 
 model OperationLog {
+  userId      Int?
+  user        User? @relation(fields: [userId], references: [id], onDelete: Cascade)
   id         Int      @id @default(autoincrement())
   createdAt  DateTime @default(now())
   action     String
@@ -226,6 +263,8 @@ model OperationLog {
 }
 
 model YearlySummary {
+  userId             Int?
+  user               User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   id                 Int      @id @default(autoincrement())
   year               Int      @unique
   achievementsCount  Int      @default(0)
@@ -243,6 +282,8 @@ model YearlySummary {
 }
 
 model YearlyGoal {
+  userId       Int?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   id           Int      @id @default(autoincrement())
   year         Int
   title        String
