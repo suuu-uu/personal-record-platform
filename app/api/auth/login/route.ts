@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   if (!result.success) return NextResponse.json({ error: "请输入用户名和密码" }, { status: 400 });
 
   const user = await prisma.user.findFirst({ where: { OR: [{ username: result.data.username }, { email: result.data.username.toLowerCase() }] } });
-  const valid = user && (() => { const [salt, key] = user.passwordHash.split(":"); const actual = scryptSync(result.data.password, salt, 64); return timingSafeEqual(actual, Buffer.from(key, "hex")); })();
+  const valid = user && (() => { const [salt, key] = user.passwordHash.split(":"); try { const actual = scryptSync(result.data.password, salt, 64); const expected = Buffer.from(key ?? "", "hex"); return expected.length === actual.length && timingSafeEqual(actual, expected); } catch { return false; } })();
   if (!valid || !user) return NextResponse.json({ error: "用户名或密码错误" }, { status: 401 });
 
   const response = NextResponse.json({ ok: true });
