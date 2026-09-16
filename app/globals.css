@@ -74,6 +74,7 @@ html[data-theme="dark"]{--background:#17232b;--foreground:#dcebf3;--card:#1f2f3a
 .pixel-welcome:after{content:"";width:34px;height:25px;background:#A7D8F0;clip-path:polygon(0 8%,35% 0,50% 35%,65% 0,100% 8%,82% 58%,62% 48%,50% 100%,38% 48%,18% 58%);text-shadow:none}.top-main:before,.top-main:after{font-family:Georgia,serif}
 .home-bow-mark{display:block;position:absolute;right:9%;top:calc(24% - 8px);z-index:2;opacity:.9}.home-bow-mark .bow-icon{color:#A7D8F0}@media(max-width:560px){.home-bow-mark{right:6%;top:calc(24% - 3px)}.home-bow-mark .bow-icon{width:24px}}
 .pixel-welcome:after{content:none}
+.map-thumbnail:first-child .footprint-map-svg{transform:scale(1.14);transform-origin:center}
 .top-main:before,.top-main:after{content:none!important}.pixel-welcome:after{content:none!important}
 .home-stats article:first-child:after,.home-stats article:nth-child(3):after{content:none!important}.empty-state:before,.login-form:before{content:none!important}
 .home-bow-mark{display:none!important}.home-stats article:first-child:after,.home-stats article:nth-child(3):after{content:none!important}
