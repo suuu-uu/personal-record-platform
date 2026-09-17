@@ -15,6 +15,9 @@ export async function buildYearlySummary(year: number, isAuto = false) {
   const keywords = Object.entries(types).sort((a,b) => b[1]-a[1]).map(([name,count]) => ({ name, count }));
   const data = { achievementsCount: achievements.length, todosCompleted: completed.length, todosTotal: todos.length, footprintsNew: footprints.length, inspirationsCount: inspirations.length, topAchievements: achievements.slice(0, 4), topInspirations: inspirations.slice(0, 4), keywords, summaryText: `${year} 年记录了 ${achievements.length} 项成就，完成 ${completed.length} 件待办，新增 ${footprints.length} 个足迹和 ${inspirations.length} 条灵感。`, overdue, typeDistribution: types };
   const stored = { achievementsCount: data.achievementsCount, todosCompleted: data.todosCompleted, todosTotal: data.todosTotal, footprintsNew: data.footprintsNew, inspirationsCount: data.inspirationsCount, topAchievements: JSON.stringify(data.topAchievements), topInspirations: JSON.stringify(data.topInspirations), keywords: JSON.stringify(keywords), summaryText: data.summaryText };
-  const summary = await prisma.yearlySummary.upsert({ where: { year }, create: { year, ...stored, isAuto }, update: { ...stored, generatedAt: new Date(), isAuto } });
+  const existing = await prisma.yearlySummary.findFirst({ where: { year } });
+  const summary = existing
+    ? await prisma.yearlySummary.update({ where: { id: existing.id }, data: { ...stored, generatedAt: new Date(), isAuto } })
+    : await prisma.yearlySummary.create({ data: { year, ...stored, isAuto } });
   return { ...summary, ...data };
 }
