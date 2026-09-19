@@ -4,7 +4,7 @@ export async function buildYearlySummary(year: number, isAuto = false) {
   const start = new Date(`${year}-01-01T00:00:00+08:00`);
   const end = new Date(`${year + 1}-01-01T00:00:00+08:00`);
   const [achievements, todos, footprints, inspirations] = await Promise.all([
-    prisma.achievement.findMany({ where: { startDate: { gte: start, lt: end }, isDeleted: false }, orderBy: { startDate: "desc" } }),
+    prisma.achievement.findMany({ where: { OR: [{ startDate: { gte: start, lt: end } }, { createdAt: { gte: start, lt: end } }], isDeleted: false }, orderBy: [{ startDate: "desc" }, { createdAt: "desc" }] }),
     prisma.todo.findMany({ where: { OR: [{ createdAt: { gte: start, lt: end } }, { completedAt: { gte: start, lt: end } }], isDeleted: false } }),
     prisma.footprint.findMany({ where: { visitedAt: { gte: start, lt: end }, isDeleted: false } }),
     prisma.inspirationItem.findMany({ where: { collectedAt: { gte: start, lt: end }, isDeleted: false }, orderBy: { collectedAt: "desc" } }),
