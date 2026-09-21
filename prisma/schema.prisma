@@ -15,6 +15,7 @@ model User {
   achievements Achievement[]
   achievementAttachments AchievementAttachment[]
   todos       Todo[]
+  dailyTodoCards DailyTodoCard[]
   shareLinks ShareLink[]
   notifications Notification[]
   footprints Footprint[]
@@ -121,12 +122,35 @@ model Todo {
   isDeleted             Boolean      @default(false)
   userId                Int?
   user                  User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dailyCardId           Int?
+  dailyCard             DailyTodoCard? @relation(fields: [dailyCardId], references: [id], onDelete: Cascade)
+  todoDate              String?
+  isDailyArchived       Boolean      @default(false)
+  dailyArchivedAt       DateTime?
+  sortOrder             Int          @default(0)
 
   @@index([isArchived, status])
   @@index([dueDate])
   @@index([remindAt, status])
   @@index([parentTodoId])
   @@index([title])
+  @@index([dailyCardId, sortOrder])
+}
+
+model DailyTodoCard {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String   @default("今日待办")
+  cardDate   String
+  status     String   @default("active")
+  archivedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  items      Todo[]
+
+  @@unique([userId, cardDate])
+  @@index([userId, status, cardDate])
 }
 
 model Notification {

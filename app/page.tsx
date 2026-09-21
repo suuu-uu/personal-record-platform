@@ -8,6 +8,7 @@ import { LazyFootprintsPicker } from "@/components/lazy-footprints-picker";
 import { runTodoCleanup } from "@/lib/todo-maintenance";
 import { HomeLiveRefresh } from "@/components/home-live-refresh";
 import { HomeDueReminder } from "@/components/home-due-reminder";
+import { DailyTodoCard } from "@/components/daily-todo-card";
 
 export const dynamic = "force-dynamic";
 const priorityWeight:Record<string,number>={high:0,medium:1,low:2};
@@ -34,6 +35,7 @@ export default async function Home(){
   return <HomeLiveRefresh><DashboardShell><PixelWelcome/><section className="home-layout"><div className="home-content">
     <section className="profile-intro"><div><p className="eyebrow">ABOUT THIS SPACE</p><h1>你好，这里是我的个人档案。</h1><p>我在这里记录完成的项目、正在推进的计划，以及亲自去过的地方。每一条记录都保留时间，也保留当时为什么出发。</p></div><HomeActions/></section>
     <section className="home-stats" aria-label="个人统计"><article><Award/><span>成就数量</span><strong>{achievementCount}</strong></article><article><Clock3/><span>待办完成率</span><strong>{Math.round(doneTodoCount / Math.max(totalTodoCount,1) * 100)}%</strong></article><article><MapPinned/><span>去过国家数</span><strong>{countryRows.length}</strong></article><article><CalendarClock/><span>灵感条目</span><strong>{inspirationCount}</strong></article></section>
+    <DailyTodoCard />
     <div className="home-lists"><section className="paper-card compact-card"><div className="section-heading"><div><span>ACHIEVEMENTS</span><h2>最近成就</h2></div><Link href="/achievements">查看全部</Link></div>{recentAchievements.length?<div className="record-list">{recentAchievements.map(item=><Link href={`/achievements/${item.id}`} className="record-row" key={item.id}><div className="record-mark">{item.isPinned?<Pin size={15}/>:<Trophy size={15}/>}</div><div><h3>{item.title}</h3><p>{item.type} · {item.organization||"未填写机构"}</p></div><time>{dateLabel(item.startDate)}</time></Link>)}</div>:<div className="empty-state">还没有成就记录。</div>}</section>
       <section className="paper-card compact-card"><div className="section-heading"><div><span>OPEN TASKS</span><h2>最近待办</h2></div><Link href="/todos">查看全部</Link></div>{recentTodos.length?<div className="record-list">{recentTodos.map(item=><Link href="/todos" className="record-row" key={item.id}><div className="record-mark"><CheckCircle2 size={15}/></div><div><h3>{item.title}</h3><p>{item.status==="doing"?"进行中":"待开始"} · {item.priority==="high"?"高优先级":item.priority==="medium"?"中优先级":"低优先级"}</p></div><time>{item.dueDate?dateLabel(item.dueDate):"未设日期"}</time></Link>)}</div>:<div className="empty-state">目前没有未完成待办。</div>}</section></div>
     <section className="footprint-preview"><div className="section-heading"><div><span>FOOTPRINTS</span><h2>足迹缩略图</h2></div><Link href="/footprints">打开足迹</Link></div><LazyFootprintsPicker initialItems={footprintItems} preview/></section>

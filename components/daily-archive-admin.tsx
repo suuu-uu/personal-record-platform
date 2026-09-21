@@ -1,0 +1,3 @@
+"use client";
+import { useState } from "react";import { toast } from "sonner";
+export function DailyArchiveAdmin({failed}:{failed:string|null}){const[busy,setBusy]=useState(false);const run=async()=>{setBusy(true);try{const r=await fetch("/api/daily-todos/archive?all=1",{method:"POST"}),d=await r.json();if(!r.ok)throw new Error(d.error||"补跑失败");toast.success(`已检查并归档 ${d.count||0} 张过期卡片`)}catch(e){toast.error(e instanceof Error?e.message:"补跑失败")}finally{setBusy(false)}};return <section className="daily-admin"><div><p className="eyebrow">DAILY TODO ARCHIVE</p><h2>当日待办归档</h2><p>{failed?`最近一次任务失败：${failed}`:"最近一次归档任务没有失败记录。"}</p></div><button className="daily-soft-button" disabled={busy} onClick={run}>{busy?"正在补跑…":"手动补跑"}</button></section>}
