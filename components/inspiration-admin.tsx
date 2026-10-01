@@ -1,5 +1,55 @@
 "use client";
-import { useEffect, useState } from "react";
-type Item={id:number;title:string;summary:string;reviewStatus:string;sourceDomain:string};
-const labels={pending:"待审核",approved:"已通过",rejected:"已拒绝"} as Record<string,string>;
-export function InspirationAdmin({month,count,failed}:{month:string;count:number;failed?:string|null}){const[items,setItems]=useState<Item[]>([]);const[runs,setRuns]=useState<any[]>([]);const[filter,setFilter]=useState("all");const[loading,setLoading]=useState(false);async function load(){const d=await fetch(`/api/inspiration/admin?month=${month}`).then(r=>r.json());setItems(d.items||[]);setRuns(d.runs||[])}useEffect(()=>{load()},[month]);async function update(id:number,body:any){await fetch(`/api/inspiration/admin/${id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});load()}async function refresh(force=false){const reason=force?prompt("请输入强制重跑原因："):null;if(force&&!reason?.trim())return;setLoading(true);await fetch("/api/inspiration/refresh",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({monthKey:month,force,forcedReason:reason})});setLoading(false);load()}const visible=items.filter(i=>filter==="all"||i.reviewStatus===filter);return <div className="inspiration-admin"><div className="admin-toolbar"><span>本月共 {count} 条，待审核 {items.filter(i=>i.reviewStatus==="pending").length} 条</span><select className="field-select" value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">全部状态</option><option value="pending">待审核</option><option value="approved">已通过</option><option value="rejected">已拒绝</option></select><button className="primary-button" onClick={()=>refresh()} disabled={loading}>{loading?"采集中…":"立即刷新"}</button><button className="ghost-button" onClick={()=>refresh(true)} disabled={loading}>强制重跑</button></div>{failed&&<p className="admin-warning">上次任务失败：{failed}</p>}<div className="inspiration-review-list">{visible.map(item=><article className="review-card" key={item.id}><div><span className={`review-badge review-${item.reviewStatus}`}>{labels[item.reviewStatus]}</span><input className="field-input" defaultValue={item.title} onBlur={e=>update(item.id,{title:e.currentTarget.value})}/><p>{item.summary}</p><small>来源：{item.sourceDomain||"未记录"}</small></div><div className="review-actions"><button className="ghost-button" onClick={()=>update(item.id,{reviewStatus:"approved"})}>通过</button><button className="ghost-button" onClick={()=>update(item.id,{reviewStatus:"rejected"})}>拒绝</button><button className="danger-button" onClick={async()=>{if(confirm("确认删除这条灵感？")){await fetch(`/api/inspiration/admin/${item.id}`,{method:"DELETE"});load()}}}>删除</button></div></article>)}</div><details className="run-history"><summary>采集运行记录（最近 {runs.length} 次）</summary>{runs.map(run=><p key={run.id}>{new Date(run.startedAt).toLocaleString()} · {run.triggerType} · {run.status} · {run.collectedCount||run.itemCount} 条 · 待审核 {run.pendingCount||0}{run.errorMessage?` · ${run.errorMessage}`:""}</p>)}</details></div>}
+import { useCallback, useEffect, useState } from "react";
+import styles from "./inspiration-admin.module.css";
+type Item = { id: number; monthKey: string; title: string; reviewStatus: string; sourceDomain: string };
+type Run = { id: number; monthKey: string; status: string; missingCount: number; errorMessage: string | null };
+const labels: Record<string, string> = { approved: "自动通过", pending: "待处理", rejected: "未通过", running: "采集中", partial: "部分完成", success: "完成", failed: "失败" };
+export function InspirationAdmin({month,count,failed}:{month:string;count:number;failed?:string|null}) {
+  const [items,setItems] = useState<Item[]>([]);
+  const [runs,setRuns] = useState<Run[]>([]);
+  const [busy,setBusy] = useState(false);
+  const [message,setMessage] = useState("");
+  const load = useCallback(async () => {
+    const response = await fetch("/api/inspiration/admin");
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "读取灵感失败");
+    setItems(data.items || []); setRuns(data.runs || []);
+  }, []);
+  useEffect(() => { load().catch(error => setMessage(error.message)); }, [load]);
+  async function refresh(force = false) {
+    const reason = force ? prompt("请输入强制重跑原因：") : null;
+    if (force && !reason?.trim()) return;
+    setBusy(true); setMessage("");
+    try {
+      const response = await fetch("/api/inspiration/refresh", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({monthKey:month,force,forcedReason:reason}) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "采集失败");
+      setMessage(data.skipped ? "本月已完成采集。" : "本月采集已更新。"); await load();
+    } catch(error) { setMessage(error instanceof Error ? error.message : "采集失败"); }
+    finally { setBusy(false); }
+  }
+  async function remove(item: Item) {
+    if (!confirm("确认删除这条灵感？")) return;
+    try {
+      const response = await fetch(`/api/inspiration/admin/${item.id}`, {method:"DELETE"});
+      if (!response.ok) throw new Error("删除失败"); await load();
+    } catch(error) { setMessage(error instanceof Error ? error.message : "删除失败"); }
+  }
+  const months = [...new Set([month,...items.map(item=>item.monthKey),...runs.map(run=>run.monthKey)])].sort().reverse();
+  return <div className={styles.panel}>
+    <div className={styles.toolbar}><span>按月查看灵感</span><button className="primary-button" onClick={()=>refresh()} disabled={busy}>{busy?"采集中…":"刷新本月"}</button><button className="ghost-button" onClick={()=>refresh(true)} disabled={busy}>强制重跑</button></div>
+    {message && <p role="status">{message}</p>}
+    {failed && <p className="admin-warning">上次任务失败：{failed}</p>}
+    {months.map(key=>{
+      const rows=items.filter(item=>item.monthKey===key);
+      const run=runs.find(run=>run.monthKey===key);
+      return <details className={styles.month} key={key}>
+        <summary><strong>{key}</strong><span>{rows.length} 条</span>{run && <span>{labels[run.status] || run.status}{run.missingCount ? `，缺少 ${run.missingCount} 条` : ""}</span>}</summary>
+        <div className={styles.content}>
+          {run?.errorMessage && <p className="admin-warning">{run.errorMessage}</p>}
+          {rows.length ? <ul className={styles.list}>{rows.map(item=><li key={item.id}><span className={styles.title} title={item.title}>{item.title}</span><small>{labels[item.reviewStatus] || item.reviewStatus} · {item.sourceDomain}</small><button className="danger-button" onClick={()=>remove(item)}>删除</button></li>)}</ul> : <p className="cell-note">该月暂无灵感条目。</p>}
+        </div>
+      </details>;
+    })}
+  </div>;
+}
